@@ -50,12 +50,31 @@ const userController = {
 
     // Update A User By The Id
     updateUser({ params }, res) {
+        User.findOneAndUpdate({
+                _id: params.id
+            }, body, {
+                new: true,
+                runValidators: true
+            })
+            .then(dbUserData => {
+                if (!dbUserData) {
+                    res.status(404).json({
+                        message: 'Invalid ID!'
+                    })
+                    return;
+                }
+                res.json(dbUserData);
+            }).catch(err => res.json(err));
+        },
+
+    // Delete A User
+    deleteUser({ params }, res) {
         User.findOneAndDelete({
                 _id: params.id
             })
             .then(dbUserData => res.json(dbUserData))
             .catch(err => res.json(err));
-        }
+    }
 };
 
 module.exports = userController
