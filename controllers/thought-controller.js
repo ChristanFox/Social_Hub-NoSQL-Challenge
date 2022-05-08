@@ -55,13 +55,26 @@ const thoughtController = {
             .catch(err => res.json(err));
         },
 
-    // Delete Selected Thought
+    // Delete Thought by ID
     deleteThought({ params }, res) {
-        Thought.findOneAndDelete({
-                _id: params.id
-            })
-            .then(dbThoughtData => res.json(dbThoughtData))
-            .catch(err => res.json(err));
+        Thought.findOneAndDelete({ _id: params.id })
+            .then(dbThoughtData => {
+                if (!dbThoughtData) {
+                    res.status(404).json({message: 'Invalid ID!'});
+                    return;
+                }
+                return User.findOneAndUpdate(
+                    { _id: params.userId },
+                    { $pull: { thoughts: params.id }},
+                    { new: true }
+                )
+            }).then(dbUserData => {
+                if (!dbUserData) {
+                    res.status(404).json({ message: 'Invalid ID!'});
+                    return;
+                }
+                res.json(dbUserData);
+            }).catch(err => res.json(err));
         }
 };
 
