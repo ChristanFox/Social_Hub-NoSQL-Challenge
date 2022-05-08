@@ -4,10 +4,12 @@ const thoughtController = {
     // Get All Thoughts
     getAllThought(req, res) {
         Thought.find({})
-            .select('-__v')
-            .sort({
-                _id: -1
+            .populate({
+                path: 'reactions',
+                select: '-__v'
             })
+            .select('-__v')
+            .sort({ _id: -1 })
             .then(dbThoughtData => res.json(dbThoughtData))
             .catch(err => {
                 console.log(err);
@@ -17,22 +19,41 @@ const thoughtController = {
 
     // Finds One Thought by the id
     findThoughtById({ params }, res) {
-        Thought.findOne({
-                _id: params.id
+        Thought.findOne({ _id: params.id })
+            .populate({
+                path: 'reactions',
+                select: '-__v'
             })
             .select('-__v')
-            .then(dbThoughtData => res.json(dbThoughtData))
-            .catch(err => {
-                console.log(err);
-                res.sendStatus(400);
-            });
+            .sort({ _id: -1 })
+            .then(dbThoughtData => {
+             if (!dbThoughtData) {
+                res.status(404).json({ message: 'Invalid ID!'});
+                return;
+            }
+            res.json(dbThoughtData)
+        }).catch(err => {
+            console.log(err);
+            res.sendStatus(400);
+           });
     },
 
     // Create A Thought
     createThought({ body }, res) {
         Thought.create(body)
-            .then(dbThoughtData => res.json(dbThoughtData))
-            .catch(err => res.json(err));
+        .then(({ _id }) => {
+            return User.findOneAndUpdate(
+                { _id: body.userId },
+                { $push: { thoughts: _id }},
+                { new: true }
+            );
+        }).then(dbThoughtData => {
+            if (!dbThoughtData) {
+                res.status(404).json({ message: 'Invalid ID!'});
+                return
+            }       
+            res.json(dbThoughtData);
+        }).catch(err => res.json(err));
     },
 
     // Update Thought By The Id
