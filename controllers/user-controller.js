@@ -49,18 +49,11 @@ const userController = {
     },
 
     // Update A User By The Id
-    updateUser({ params }, res) {
-        User.findOneAndUpdate({
-                _id: params.id
-            }, body, {
-                new: true,
-                runValidators: true
-            })
+    updateUser({ params, body }, res) {
+        User.findOneAndUpdate({ _id: params.id }, body, { new: true, runValidators: true })
             .then(dbUserData => {
                 if (!dbUserData) {
-                    res.status(404).json({
-                        message: 'Invalid ID!'
-                    })
+                    res.status(404).json({ message: 'Invalid ID!' })
                     return;
                 }
                 res.json(dbUserData);
