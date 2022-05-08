@@ -91,14 +91,14 @@ const thoughtController = {
                 )
             }).then(dbUserData => {
                 if (!dbUserData) {
-                    res.status(404).json({ message: 'Invalid ID!'});
+                    res.status(404).json({ message: 'Gone!'});
                     return;
                 }
                 res.json(dbUserData);
             }).catch(err => res.json(err));
         },
 
-    createReaction({ params }, res) {
+    createReaction({ params, body }, res) {
         Thought.findOneAndUpdate(
             { _id: params.thoughtId },
             { $push: { reactions: body }},
