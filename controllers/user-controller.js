@@ -60,14 +60,37 @@ const userController = {
             }).catch(err => res.json(err));
         },
 
-    // Delete A User
+    // Delete A User and Thoughts associated with it
     deleteUser({ params }, res) {
-        User.findOneAndDelete({
-                _id: params.id
+        Thought.deleteMany({ _id: params.id })
+            .then(() => {
+                User.findOneAndDelete({ userId: params.id })
+                .then(dbUserData => {
+                    if (!dbUserData) {
+                        res.status(404).json({message: 'Invalid ID!'});
+                        return;
+                    }
+                    res.json(dbUserData);
+                });
             })
-            .then(dbUserData => res.json(dbUserData))
             .catch(err => res.json(err));
-    }
+    },
+
+    // Add A Friend to the User (/api/users/:userid/friends/:friendid)
+    addFriend({ params }, res) {
+        User.findOneAndUpdate(
+            { _id: params.userId },
+            { $push: { friends: params.friendId }},
+            { new: true }
+        ).then((dbUserData) => {
+            if (!dbUserData) {
+                res.status(404).json({ message:'Invalid ID!'});
+                return;
+            }
+            res.json(dbUserData);
+        })
+        .catch((err) => res.status(400).json(err));
+    } 
 };
 
 module.exports = userController
